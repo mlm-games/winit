@@ -172,6 +172,9 @@ pub struct WindowState {
     // field drop order guarantees.
     /// The window frame, which is created from the configure request.
     frame: Option<WinitFrame>,
+
+    /// Whether the window is visible.
+    visible: bool,
 }
 
 impl WindowState {
@@ -239,6 +242,7 @@ impl WindowState {
             title: String::default(),
             transparent: false,
             viewport,
+            visible: true,
             window,
         }
     }
@@ -606,6 +610,16 @@ impl WindowState {
     #[inline]
     pub fn is_configured(&self) -> bool {
         self.last_configure.is_some()
+    }
+
+    #[inline]
+    pub fn is_visible(&self) -> bool {
+        self.visible
+    }
+
+    #[inline]
+    pub fn set_visible(&mut self, visible: bool) {
+        self.visible = visible;
     }
 
     #[inline]

@@ -401,12 +401,31 @@ impl CoreWindow for Window {
         self.window_state.lock().unwrap().set_transparent(transparent);
     }
 
-    fn set_visible(&self, _visible: bool) {
-        // Not possible on Wayland.
+    fn set_visible(&self, visible: bool) {
+        {
+            let mut state = self.window_state.lock().unwrap();
+            if state.is_visible() == visible {
+                return;
+            }
+            state.set_visible(visible);
+            if visible {
+                state.frame_callback_reset();
+            }
+        }
+
+        let surface = self.surface();
+        if visible {
+            surface.commit();
+            self.request_redraw();
+        } else {
+            self.window_requests.redraw_requested.store(false, Ordering::Relaxed);
+            surface.attach(None, 0, 0);
+            surface.commit();
+        }
     }
 
     fn is_visible(&self) -> Option<bool> {
-        None
+        Some(self.window_state.lock().unwrap().is_visible())
     }
 
     fn set_resizable(&self, resizable: bool) {
